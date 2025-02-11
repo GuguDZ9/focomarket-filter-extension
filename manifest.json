@@ -1,0 +1,20 @@
+// manifest.json
+{
+    "manifest_version": 3,
+    "name": "FocoMarket Filtro de Categorias",
+	"author": "@gugufoco",
+    "version": "2.0",
+    "description": "Organiza eventos por categoria na página de competições.",
+    "permissions": ["scripting"],
+    "host_permissions": ["https://www.focomarket.com.br/competition/future*"],
+    "background": {
+        "service_worker": "background.js"
+    },
+    "content_scripts": [
+        {
+            "matches": ["https://www.focomarket.com.br/competition/future*"],
+            "js": ["script.js"],
+            "run_at": "document_idle"
+        }
+    ]
+}
