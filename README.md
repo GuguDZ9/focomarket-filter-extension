@@ -1,7 +1,6 @@
 Para Instalação:
 
-🛠 Passo 1: Baixar os Arquivos
-Salve os arquivos no seu computador.
+🛠 Passo 1: Salve os arquivos no seu computador.
 
 🔧 Passo 2: Ativar o Modo Desenvolvedor no Chrome
 Abra o Google Chrome.
