@@ -1,6 +1,8 @@
 Para Instalação:
 
-🛠 Passo 1: Salve os arquivos no seu computador.
+🛠 Passo 1: Salve os arquivos no seu computador:
+
+Clique no botão "Code" em seguida "download zip"
 
 🔧 Passo 2: Ativar o Modo Desenvolvedor no Chrome:
 
