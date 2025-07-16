@@ -1,17 +1,20 @@
-(function () {
+ (function () {
     let selectedCategories = new Set(JSON.parse(sessionStorage.getItem("selectedCategories")) || []);
     let categoriesCount = {};
 
     function createCategoryFilters() {
-        const container = document.querySelector(".listing-evidence-list");
+        const container = document.querySelector(".listing-evidence-list") || document.querySelector(".card-listing") || document.body;
         if (!container) return;
-        
+
         categoriesCount = {};
-        document.querySelectorAll("p.listing-evidence-date-card i.icon-sport").forEach(icon => {
-            const categoryText = icon.parentElement.textContent.trim();
-            categoriesCount[categoryText] = (categoriesCount[categoryText] || 0) + 1;
+        document.querySelectorAll(".col-md-4.col-sm-12.card-event-widget").forEach(card => {
+            const categorySpan = card.querySelector(".left-card-column .icon-text-card .event-text-fc.event-city-fc");
+            if (categorySpan) {
+                const categoryText = categorySpan.textContent.trim();
+                categoriesCount[categoryText] = (categoriesCount[categoryText] || 0) + 1;
+            }
         });
-        
+
         let filterContainer = document.querySelector(".filter-tags");
         if (!filterContainer) {
             filterContainer = document.createElement("div");
@@ -20,18 +23,17 @@
         } else {
             filterContainer.innerHTML = "";
         }
-        
+
         Object.entries(categoriesCount).forEach(([category, count]) => {
             const tagButton = document.createElement("button");
             tagButton.className = "category-tag btn btn-outline-primary rounded-pill mx-1";
             tagButton.innerText = `${category} (${count})`;
-            
+
             if (selectedCategories.has(category)) {
                 tagButton.classList.add("selected");
             }
-            
+
             tagButton.onclick = () => toggleCategoryFilter(category, tagButton);
-            
             filterContainer.appendChild(tagButton);
         });
     }
@@ -49,27 +51,27 @@
     }
 
     function filterCards() {
-        const cards = document.querySelectorAll(".card-evidence-wrapper");
+        const cards = document.querySelectorAll(".col-md-4.col-sm-12.card-event-widget");
         let updatedCount = {};
         let availableCategories = new Set();
-        
+
         cards.forEach(card => {
-            const categoryElement = card.querySelector("p.listing-evidence-date-card i.icon-sport");
-            if (!categoryElement) {
+            const categorySpan = card.querySelector(".left-card-column .icon-text-card .event-text-fc.event-city-fc");
+            if (!categorySpan) {
                 card.style.display = selectedCategories.size === 0 ? "block" : "none";
                 return;
             }
-            
-            const categoryText = categoryElement.parentElement.textContent.trim();
+
+            const categoryText = categorySpan.textContent.trim();
             availableCategories.add(categoryText);
             const isVisible = selectedCategories.size === 0 || selectedCategories.has(categoryText);
             card.style.display = isVisible ? "block" : "none";
-            
+
             if (isVisible) {
                 updatedCount[categoryText] = (updatedCount[categoryText] || 0) + 1;
             }
         });
-        
+
         let hasValidSelection = false;
         selectedCategories.forEach(category => {
             if (!availableCategories.has(category)) {
@@ -78,15 +80,16 @@
                 hasValidSelection = true;
             }
         });
-        
+
         if (!hasValidSelection) {
             selectedCategories.clear();
         }
         sessionStorage.setItem("selectedCategories", JSON.stringify([...selectedCategories]));
         createCategoryFilters();
         updateCategoryCounts(updatedCount);
+
         if (selectedCategories.size === 0) {
-            document.querySelectorAll(".card-evidence-wrapper").forEach(card => card.style.display = "block");
+            document.querySelectorAll(".col-md-4.col-sm-12.card-event-widget").forEach(card => card.style.display = "block");
         }
     }
 
