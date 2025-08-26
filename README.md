@@ -2,7 +2,7 @@ Para Instalação:
 
 🛠 Passo 1: Salve os arquivos no seu computador:
 
-Clique no botão "Code" em seguida "download zip"
+Clique no botão "Code" acima, em seguida "download zip"
 
 🔧 Passo 2: Ativar o Modo Desenvolvedor no Chrome:
 
@@ -13,7 +13,7 @@ No canto superior direito, ative o Modo do desenvolvedor.
 📂 Passo 3: Carregar a Extensão no Chrome:
 
 Clique no botão "Carregar sem compactação".
-Selecione a pasta focomarket-filter-extension onde os arquivos foram salvos.
+Selecione a pasta focomarket-filter-extension onde os arquivos foram descompactados.
 O Chrome carregará a extensão e ela aparecerá na lista de extensões instaladas.
 
 ✅ Passo 4: Testar a Extensão:
