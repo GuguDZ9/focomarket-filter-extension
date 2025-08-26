@@ -34,7 +34,7 @@
         if (hasOfficial) {
             const tagButton = document.createElement("button");
             tagButton.type = 'button';
-            tagButton.className = "category-tag btn btn-success rounded-pill mx-1 my-1";
+            tagButton.className = "category-tag official-tag btn rounded-pill mx-1 my-1";
             tagButton.innerText = `Oficial (${categoriesCount["Oficial"]})`;
 
             if (selectedCategories.has("Oficial")) {
@@ -166,11 +166,13 @@
         const style = document.createElement("style");
         style.innerHTML = `
             .filter-tags { display: flex; flex-wrap: wrap; gap: 10px; }
-            .category-tag { border: 2px solid #007bff; background: #fff; color: #007bff; padding: 5px 10px; cursor: pointer; }
+            .category-tag { border: 2px solid #007bff; background: #fff; color: #007bff; padding: 5px 10px; cursor: pointer; transition: all 0.2s; }
+            .category-tag:hover { background: #007bff; color: #fff; }
             .category-tag.selected { background: #007bff; color: #fff; }
             /* Oficial (verde rgb(8, 141, 78)) */
-            .category-tag.btn-success { border: 2px solid rgb(8, 141, 78); background: #fff; color: rgb(8, 141, 78); }
-            .category-tag.btn-success.selected { background: rgb(8, 141, 78); color: #fff; }
+            .official-tag { border: 2px solid rgb(8, 141, 78); background: #fff; color: rgb(8, 141, 78); transition: all 0.2s; }
+            .official-tag:hover { background: rgb(8, 141, 78); color: #fff; }
+            .official-tag.selected { background: rgb(8, 141, 78); color: #fff; }
             .remove-tag { margin-left: 5px; cursor: pointer; }
         `;
         document.head.appendChild(style);
