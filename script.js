@@ -1,13 +1,24 @@
- (function () {
+(function () {
     let selectedCategories = new Set(JSON.parse(sessionStorage.getItem("selectedCategories")) || []);
     let categoriesCount = {};
+    let hasOfficial = false;
 
     function createCategoryFilters() {
-        const container = document.querySelector(".listing-evidence-list") || document.querySelector(".card-listing") || document.body;
+        const container = document.querySelector(".filter-events");
         if (!container) return;
 
         categoriesCount = {};
+        hasOfficial = false;
+
         document.querySelectorAll(".col-md-4.col-sm-12.card-event-widget").forEach(card => {
+            // Detecta badge oficial
+            const badge = card.querySelector(".event-card-fc .event-badge-fc");
+            if (badge && badge.textContent.trim().toLowerCase().includes("oficial")) {
+                hasOfficial = true;
+                categoriesCount["Oficial"] = (categoriesCount["Oficial"] || 0) + 1;
+            }
+
+            // Detecta categoria do card (primeiro item da coluna esquerda)
             const categorySpan = card.querySelector(".left-card-column .icon-text-card .event-text-fc.event-city-fc");
             if (categorySpan) {
                 const categoryText = categorySpan.textContent.trim();
@@ -15,18 +26,32 @@
             }
         });
 
-        let filterContainer = document.querySelector(".filter-tags");
-        if (!filterContainer) {
-            filterContainer = document.createElement("div");
-            filterContainer.className = "filter-tags d-flex flex-wrap mb-3";
-            container.insertBefore(filterContainer, container.firstChild);
-        } else {
-            filterContainer.innerHTML = "";
+        container.innerHTML = "";
+        const filterContainer = document.createElement("div");
+        filterContainer.className = "filter-tags d-flex flex-wrap mb-3";
+
+        // Cria a tag Oficial primeiro
+        if (hasOfficial) {
+            const tagButton = document.createElement("button");
+            tagButton.type = 'button';
+            tagButton.className = "category-tag btn btn-success rounded-pill mx-1 my-1";
+            tagButton.innerText = `Oficial (${categoriesCount["Oficial"]})`;
+
+            if (selectedCategories.has("Oficial")) {
+                tagButton.classList.add("selected");
+            }
+
+            tagButton.onclick = () => toggleCategoryFilter("Oficial", tagButton);
+            filterContainer.appendChild(tagButton);
         }
 
+        // Depois cria as demais tags de categoria
         Object.entries(categoriesCount).forEach(([category, count]) => {
+            if (category === "Oficial") return; // já adicionada
+
             const tagButton = document.createElement("button");
-            tagButton.className = "category-tag btn btn-outline-primary rounded-pill mx-1";
+            tagButton.type = 'button';
+            tagButton.className = "category-tag btn btn-outline-primary rounded-pill mx-1 my-1";
             tagButton.innerText = `${category} (${count})`;
 
             if (selectedCategories.has(category)) {
@@ -36,6 +61,8 @@
             tagButton.onclick = () => toggleCategoryFilter(category, tagButton);
             filterContainer.appendChild(tagButton);
         });
+
+        container.appendChild(filterContainer);
     }
 
     function toggleCategoryFilter(category, button) {
@@ -55,29 +82,61 @@
         let updatedCount = {};
         let availableCategories = new Set();
 
+        const wantsOfficial = selectedCategories.has("Oficial");
+        const selectedCats = [...selectedCategories].filter(c => c !== "Oficial");
+
         cards.forEach(card => {
-            const categorySpan = card.querySelector(".left-card-column .icon-text-card .event-text-fc.event-city-fc");
-            if (!categorySpan) {
-                card.style.display = selectedCategories.size === 0 ? "block" : "none";
-                return;
+            let categoryText = null;
+            let isOfficial = false;
+
+            // Verifica badge Oficial
+            const badge = card.querySelector(".event-card-fc .event-badge-fc");
+            if (badge && badge.textContent.trim().toLowerCase().includes("oficial")) {
+                isOfficial = true;
+                availableCategories.add("Oficial");
             }
 
-            const categoryText = categorySpan.textContent.trim();
-            availableCategories.add(categoryText);
-            const isVisible = selectedCategories.size === 0 || selectedCategories.has(categoryText);
+            // Verifica categoria principal
+            const categorySpan = card.querySelector(".left-card-column .icon-text-card .event-text-fc.event-city-fc");
+            if (categorySpan) {
+                categoryText = categorySpan.textContent.trim();
+                availableCategories.add(categoryText);
+            }
+
+            // Lógica AND/OR correta
+            let isVisible = false;
+            if (selectedCategories.size === 0) {
+                isVisible = true; // sem filtros => tudo
+            } else if (wantsOfficial && selectedCats.length === 0) {
+                // Apenas "Oficial"
+                isVisible = isOfficial;
+            } else if (!wantsOfficial && selectedCats.length > 0) {
+                // Apenas categorias (qualquer uma)
+                isVisible = categoryText ? selectedCats.includes(categoryText) : false;
+            } else if (wantsOfficial && selectedCats.length > 0) {
+                // Oficial + categorias => AND entre dimensões
+                isVisible = isOfficial && categoryText ? selectedCats.includes(categoryText) : false;
+            }
+
             card.style.display = isVisible ? "block" : "none";
 
             if (isVisible) {
-                updatedCount[categoryText] = (updatedCount[categoryText] || 0) + 1;
+                if (isOfficial) {
+                    updatedCount["Oficial"] = (updatedCount["Oficial"] || 0) + 1;
+                }
+                if (categoryText) {
+                    updatedCount[categoryText] = (updatedCount[categoryText] || 0) + 1;
+                }
             }
         });
 
+        // Remove seleções inexistentes na página atual
         let hasValidSelection = false;
         selectedCategories.forEach(category => {
-            if (!availableCategories.has(category)) {
-                selectedCategories.delete(category);
+            if (category === "Oficial") {
+                if (availableCategories.has("Oficial")) hasValidSelection = true; else selectedCategories.delete("Oficial");
             } else {
-                hasValidSelection = true;
+                if (availableCategories.has(category)) hasValidSelection = true; else selectedCategories.delete(category);
             }
         });
 
@@ -106,26 +165,13 @@
     function applyStyles() {
         const style = document.createElement("style");
         style.innerHTML = `
-            .filter-tags {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 10px;
-            }
-            .category-tag {
-                border: 2px solid #007bff;
-                background: white;
-                color: #007bff;
-                padding: 5px 10px;
-                cursor: pointer;
-            }
-            .category-tag.selected {
-                background: #007bff;
-                color: white;
-            }
-            .remove-tag {
-                margin-left: 5px;
-                cursor: pointer;
-            }
+            .filter-tags { display: flex; flex-wrap: wrap; gap: 10px; }
+            .category-tag { border: 2px solid #007bff; background: #fff; color: #007bff; padding: 5px 10px; cursor: pointer; }
+            .category-tag.selected { background: #007bff; color: #fff; }
+            /* Oficial (verde rgb(8, 141, 78)) */
+            .category-tag.btn-success { border: 2px solid rgb(8, 141, 78); background: #fff; color: rgb(8, 141, 78); }
+            .category-tag.btn-success.selected { background: rgb(8, 141, 78); color: #fff; }
+            .remove-tag { margin-left: 5px; cursor: pointer; }
         `;
         document.head.appendChild(style);
     }
@@ -138,7 +184,7 @@
                 setTimeout(() => {
                     createCategoryFilters();
                     filterCards();
-                }, 300); 
+                }, 300);
             }
         });
     }
